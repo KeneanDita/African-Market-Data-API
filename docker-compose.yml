@@ -1,0 +1,87 @@
+services:
+  db:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_DB: africadata
+      POSTGRES_USER: kenean
+      POSTGRES_PASSWORD: devpassword
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U kenean -d africadata"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  api:
+    build: ./backend
+    ports:
+      - "8000:8000"
+    environment:
+      DATABASE_URL: postgresql+psycopg://kenean:devpassword@db:5432/africadata
+      REDIS_URL: redis://redis:6379/0
+      ENVIRONMENT: development
+      AUTO_CREATE_TABLES: "false"
+      CORS_ORIGINS: http://localhost:3000
+      DOCS_URL: http://localhost:8000/docs
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - ./backend:/app
+    # Migrate, seed, then serve with hot reload.
+    command: >
+      sh -c "alembic upgrade head &&
+             python -m app.cli seed &&
+             uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload"
+
+  worker:
+    build: ./backend
+    environment:
+      DATABASE_URL: postgresql+psycopg://kenean:devpassword@db:5432/africadata
+      REDIS_URL: redis://redis:6379/0
+    depends_on:
+      api:
+        condition: service_started
+    volumes:
+      - ./backend:/app
+    command: celery -A app.scrapers.scheduler worker --loglevel=info --concurrency=1
+
+  beat:
+    build: ./backend
+    environment:
+      DATABASE_URL: postgresql+psycopg://kenean:devpassword@db:5432/africadata
+      REDIS_URL: redis://redis:6379/0
+    depends_on:
+      worker:
+        condition: service_started
+    volumes:
+      - ./backend:/app
+    command: celery -A app.scrapers.scheduler beat --loglevel=info
+
+  frontend:
+    build: ./frontend
+    ports:
+      - "3000:3000"
+    environment:
+      NEXT_PUBLIC_API_URL: http://localhost:8000/v1
+      NEXT_PUBLIC_GRAPHQL_URL: http://localhost:8000/graphql
+    depends_on:
+      - api
+
+volumes:
+  postgres_data:
