@@ -1,0 +1,176 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ------------------------------------------------------------------ tokens */
+:root {
+  --c-paper: 244 239 230;     /* warm paper */
+  --c-surface: 251 248 242;
+  --c-raised: 255 255 255;
+  --c-ink: 22 20 15;
+  --c-muted: 107 101 91;
+  --c-line: 214 206 192;
+  --c-accent: 194 69 31;      /* terracotta */
+  --c-ochre: 201 148 24;
+  --c-moss: 31 95 74;
+  --c-indigo: 43 58 140;
+  --chart-grid: rgb(22 20 15 / 0.08);
+  color-scheme: light;
+}
+
+.dark {
+  --c-paper: 15 14 12;
+  --c-surface: 24 22 19;
+  --c-raised: 32 29 25;
+  --c-ink: 241 236 226;
+  --c-muted: 154 147 138;
+  --c-line: 48 44 39;
+  --c-accent: 236 108 66;
+  --c-ochre: 231 185 74;
+  --c-moss: 86 176 141;
+  --c-indigo: 123 137 224;
+  --chart-grid: rgb(241 236 226 / 0.08);
+  color-scheme: dark;
+}
+
+/* ------------------------------------------------------------------ base */
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  @apply bg-paper font-sans text-ink antialiased;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* subtle paper grain */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  opacity: 0.06;
+  mix-blend-mode: multiply;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.05 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+.dark body::before {
+  mix-blend-mode: screen;
+  opacity: 0.05;
+}
+
+::selection {
+  @apply bg-accent/25 text-ink;
+}
+
+/* ------------------------------------------------------------------ type */
+.display {
+  @apply font-display font-light tracking-[-0.02em] text-ink;
+  font-variation-settings: "opsz" 144, "SOFT" 30;
+}
+
+.eyebrow {
+  @apply font-mono text-[11px] uppercase tracking-eyebrow text-muted;
+}
+
+.num {
+  @apply font-display tabular-nums tracking-[-0.03em];
+  font-variation-settings: "opsz" 144, "SOFT" 0;
+}
+
+/* ------------------------------------------------------------------ elements */
+.rule {
+  @apply h-px w-full bg-line;
+}
+
+.btn {
+  @apply inline-flex items-center gap-2 rounded-full px-5 py-2.5 text-sm font-medium transition-all duration-200 disabled:cursor-not-allowed disabled:opacity-40;
+}
+.btn-ink {
+  @apply btn bg-ink text-paper hover:bg-accent hover:text-white;
+}
+.btn-outline {
+  @apply btn border border-ink/30 text-ink hover:border-ink hover:bg-ink hover:text-paper;
+}
+.btn-quiet {
+  @apply btn px-3 text-muted hover:text-ink;
+}
+.btn .arrow {
+  @apply inline-block transition-transform duration-200;
+}
+.btn:hover .arrow {
+  transform: translateX(3px);
+}
+
+.card {
+  @apply border border-line bg-surface;
+}
+
+.field {
+  @apply w-full border-0 border-b border-line bg-transparent px-0 py-2 font-sans text-sm text-ink outline-none transition placeholder:text-muted/70 focus:border-ink;
+}
+select.field {
+  @apply cursor-pointer appearance-none pr-6;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='none' stroke='%236B655B' stroke-width='1.5'%3E%3Cpath d='M2 4l4 4 4-4'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0 center;
+}
+select.field option {
+  @apply bg-surface text-ink;
+}
+
+.label {
+  @apply eyebrow mb-2 block;
+}
+
+pre.code {
+  @apply overflow-x-auto bg-ink p-5 font-mono text-[12.5px] leading-relaxed text-paper;
+}
+.dark pre.code {
+  @apply bg-black/60;
+}
+
+.tag {
+  @apply inline-flex items-center gap-1.5 rounded-full border border-line px-3 py-1 font-mono text-[11px] uppercase tracking-wider text-muted;
+}
+
+.segment {
+  @apply inline-flex flex-wrap gap-1 border-b border-line;
+}
+.segment button {
+  @apply -mb-px border-b-2 border-transparent px-3 py-2 font-mono text-[11px] uppercase tracking-wider text-muted transition hover:text-ink;
+}
+.segment button[aria-pressed="true"] {
+  @apply border-accent text-ink;
+}
+
+/* kente-inspired stripe band */
+.kente {
+  height: 8px;
+  background: repeating-linear-gradient(
+    90deg,
+    rgb(var(--c-accent)) 0 48px,
+    rgb(var(--c-ink)) 48px 56px,
+    rgb(var(--c-ochre)) 56px 104px,
+    rgb(var(--c-ink)) 104px 112px,
+    rgb(var(--c-moss)) 112px 160px,
+    rgb(var(--c-ink)) 160px 168px,
+    rgb(var(--c-indigo)) 168px 216px,
+    rgb(var(--c-ink)) 216px 224px
+  );
+}
+
+.ticker-mask {
+  mask-image: linear-gradient(90deg, transparent, black 8%, black 92%, transparent);
+}
+
+.scrollbar-thin::-webkit-scrollbar {
+  width: 6px;
+}
+.scrollbar-thin::-webkit-scrollbar-thumb {
+  @apply rounded-full bg-line;
+}
+
+.recharts-tooltip-wrapper {
+  outline: none;
+}
